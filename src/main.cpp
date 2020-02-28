@@ -20,6 +20,8 @@ OneWire oneWire(dallasDataPin);
 DallasTemperature sensors(&oneWire);
 DeviceAddress dallasAddress;
 
+constexpr unsigned long intervalMillis = 1000;
+
 bool isCooldownEnabled = false;
 
 void setupSerial() {
@@ -81,7 +83,21 @@ void printCurrentState(const float temperature) {
     }
 }
 
+bool hasIntervalPassed() {
+    static unsigned long previousMillis = millis();
+    const unsigned long currentMillis = millis();
+    if (currentMillis - previousMillis >= intervalMillis) {
+        previousMillis = currentMillis;
+        return true;
+    }
+    return false;
+}
+
 void loop() {
+    if (!hasIntervalPassed()) {
+        return;
+    }
+
     sensors.requestTemperatures();
     const float temperature = sensors.getTempC(dallasAddress);
 
